@@ -14,6 +14,7 @@ typedef struct {
 
 // Функции для работы с пикселем (конструктор и деструктор)
 rgbled* create_pixel(unsigned int r, unsigned int g, unsigned int b, unsigned int mode);
+void fill_pixel_manual(rgbled* p); // <--- НОВЫЙ МЕТОД ДЛЯ ЗАПОЛНЕНИЯ
 void free_pixel(rgbled* p);
 
 #endif
