@@ -21,7 +21,25 @@ matrix2d* create_matrix(int r, int c) {
     }
     return m;
 }
-
+// Функция ручного ввода матрицы с клавиатуры
+void input_matrix(matrix2d* m) {
+    printf("--- Ручной ввод матрицы размером %dx%d ---\n", m->rows, m->cols);
+    for (int i = 0; i < m->rows; i++) {
+        for (int j = 0; j < m->cols; j++) {
+            // Временные переменные, так как scanf не умеет писать напрямую в битовые поля
+            int r, g, b, mode; 
+            
+            printf("Пиксель [%d][%d] - Введите через пробел R, G, B и Режим (0-2): ", i, j);
+            scanf("%d %d %d %d", &r, &g, &b, &mode);
+            
+            // Присваиваем считанные значения нашим битовым полям
+            m->data[i][j].red = r;
+            m->data[i][j].green = g;
+            m->data[i][j].blue = b;
+            m->data[i][j].mode = mode;
+        }
+    }
+}
 // Деструктор (очистка памяти в обратном порядке)
 void free_matrix(matrix2d* m) {
     if (m == NULL) return;
