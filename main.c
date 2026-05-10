@@ -1,136 +1,149 @@
-#include "fiostruct.h"
-#include "contqueue.h"
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+// Подключаем модули проекта
+#include "bitrgbled.h"
+#include "matrix2d.h"
+#include "contqueue.h"
+#include "fiostruct.h"
+
+// =================================================================
+// СТРУКТУРА ДЛЯ ЛАБЫ 1: Чистая матрица на int (для демонстрации)
+// =================================================================
+typedef struct {
+    int rows;
+    int cols;
+    int **data;
+} simple_matrix;
+
+// Конструктор для простой матрицы
+simple_matrix* create_simple(int r, int c) {
+    simple_matrix* m = (simple_matrix*)malloc(sizeof(simple_matrix));
+    m->rows = r; 
+    m->cols = c;
+    m->data = (int**)malloc(r * sizeof(int*));
+    for (int i = 0; i < r; i++) {
+        m->data[i] = (int*)malloc(c * sizeof(int));
+    }
+    return m;
+}
+
+// Деструктор для простой матрицы
+void free_simple(simple_matrix* m) {
+    if (m == NULL) return;
+    for (int i = 0; i < m->rows; i++) free(m->data[i]);
+    free(m->data);
+    free(m);
+}
 
 int main(int argc, char *argv[]) {
-    // Проверка, что пользователь ввел хоть какие-то аргументы
     if (argc < 2) {
-        printf("--- ПОМОЩЬ ПО ЗАПУСКУ (МЕНЮ) ---\n");
-        printf("./main test - запустить наглядную демонстрацию Лаб 1, 2 и 3 в памяти\n");
-        printf("./main save <файл> - (Лаба 4) сгенерировать 10000 элементов и сохранить\n");
-        printf("./main list <файл> - (Лаба 4) узнать количество элементов в файле\n");
-        printf("./main get <индекс> <файл> - (Лаба 4) вывести i-тый элемент из файла\n");
+        printf("=== МЕНЮ ТЕСТИРОВАНИЯ ЛАБОРАТОРНЫХ РАБОТ ===\n");
+        printf(" ./main lab1   - Тест Лабы 1 (Чистая Матрица на int + scanf)\n");
+        printf(" ./main lab2   - Тест Лабы 2 (Матрица с RGB пикселями + scanf)\n");
+        printf(" ./main lab3   - Тест Лабы 3 (Очередь на 1 000 000 элементов)\n");
+        printf(" ./main lab4 save <файл> - Тест Лабы 4 (Сохранение в файл)\n");
+        printf(" ./main lab4 list <файл> - Тест Лабы 4 (Количество в файле)\n");
+        printf(" ./main lab4 get <индекс> <файл> - Тест Лабы 4 (Чтение элемента)\n");
         return 0;
     }
 
-    // Сохраняем команду (первое слово после ./main) в переменную
-    const char* cmd = argv[1];
+    const char* command = argv[1];
 
-    // =====================================================================
-    // БЛОК ТЕСТИРОВАНИЯ ЛАБОРАТОРНЫХ №1, №2 и №3 (ОПЕРАТИВНАЯ ПАМЯТЬ)
-    // =====================================================================
-    if (strcmp(cmd, "test") == 0) {
-        printf("\n========== ЛАБОРАТОРНАЯ РАБОТА №1 и №2 ==========\n");
-        printf("Связка: Создаем двумерную матрицу (Лаб 1), которая хранит пиксели с битовыми полями (Лаб 2).\n\n");
+    // --- ЛАБОРАТОРНАЯ 1: МАТРИЦА НА INT ---
+    if (strcmp(command, "lab1") == 0) {
+        printf("\n--- ЛАБ 1: РУЧНОЙ ВВОД МАТРИЦЫ (INT) ---\n");
+        simple_matrix* m = create_simple(2, 2);
         
-        // 1. Выделяем динамическую память под матрицу 2 на 2
-        matrix2d* my_matrix = create_matrix(2, 2);
-        
-        // 2. Заполняем её случайными значениями (RGB цвета)
-        fill_random(my_matrix);
-        
-        printf("Матрица успешно создана!\nВыводим её на экран (RGB-каналы):\n");
-        print_matrix(my_matrix);
-        
-        // 3. Демонстрируем работу битовых полей из Лабы 2
-        printf("\nПроверка битовых полей (Лаба 2):\n");
-        printf("Яркость пикселя [0][0] = %d (Занимает всего 7 бит памяти!)\n", 
-               my_matrix->data[0][0].brightness);
-
-        printf("\n========== ЛАБОРАТОРНАЯ РАБОТА №3 ==========\n");
-        printf("Контейнер: Помещаем нашу матрицу в динамическую Очередь (FIFO).\n\n");
-        
-        // 4. Создаем пустую очередь
-        queue* my_queue = create_queue();
-        printf("Очередь создана. Добавляем в нее нашу матрицу...\n");
-        
-        // 5. Кладем матрицу в хвост очереди
-        enqueue(my_queue, my_matrix);
-        printf("Элементов в очереди сейчас: %d\n", my_queue->count);
-        
-        // 6. Создадим еще одну маленькую матрицу (1х1) для наглядности
-        matrix2d* second_matrix = create_matrix(1, 1);
-        enqueue(my_queue, second_matrix);
-        printf("Добавили еще одну матрицу. Элементов в очереди: %d\n", my_queue->count);
-        
-        // 7. Извлекаем первый элемент (по правилу FIFO: первым пришел - первым ушел)
-        printf("\nИзвлекаем элемент из головы очереди...\n");
-        matrix2d* extracted = dequeue(my_queue);
-        printf("Извлекли матрицу размером %dx%d. Элементов осталось в очереди: %d\n", 
-               extracted->rows, extracted->cols, my_queue->count);
-        
-        // 8. Очищаем память, чтобы преподаватель не придрался к утечкам!
-        printf("\nОчищаем память (вызов деструкторов)...\n");
-        free_matrix(extracted);   // Удаляем ту матрицу, что достали
-        free_queue(my_queue);     // Удаляем очередь (вторая матрица удалится внутри автоматически)
-        
-        printf("Тестирование первых трех лаб завершено успешно!\n");
-    } 
-    
-    // =====================================================================
-    // БЛОК ТЕСТИРОВАНИЯ ЛАБОРАТОРНОЙ №4 (ФАЙЛОВЫЙ ВВОД/ВЫВОД)
-    // =====================================================================
-    
-    // Команда SAVE: Сгенерировать и сохранить
-    else if (strcmp(cmd, "save") == 0 && argc == 3) {
-        printf("\n========== ЛАБ 4: СОХРАНЕНИЕ В ФАЙЛ ==========\n");
-        const char* file = argv[2]; // Имя файла из консоли
-        int count = 10000;          // По заданию нужно 10 000 элементов
-        
-        printf("Генерация %d матриц в оперативной памяти...\n", count);
-        matrix2d** arr = rand_gen_struct(count);
-        
-        printf("Запись данных в текстовый файл '%s'...\n", file);
-        save_text(file, arr, count); // Пишем в файл
-        printf("Готово! Данные успешно сохранены.\n");
-        
-        // Обязательно очищаем огромный массив после работы
-        for(int i = 0; i < count; i++) {
-            free_matrix(arr[i]);
+        printf("Введите %d целых чисел для матрицы %dx%d:\n", m->rows * m->cols, m->rows, m->cols);
+        for (int i = 0; i < m->rows; i++) {
+            for (int j = 0; j < m->cols; j++) {
+                printf("Элемент [%d][%d]: ", i, j);
+                scanf("%d", &m->data[i][j]); // Ручной ввод
+            }
         }
-        free(arr);
-    } 
-    
-    // Команда LIST: Посмотреть сколько элементов внутри
-    else if (strcmp(cmd, "list") == 0 && argc == 3) {
-        printf("\n========== ЛАБ 4: ЧТЕНИЕ КОЛИЧЕСТВА ==========\n");
-        const char* file = argv[2];
         
-        // Функция сама откроет файл, прочитает первую строку и закроет его
-        list_file(file);
-    } 
-    
-    // Команда GET: Извлечь конкретный элемент (по индексу)
-    else if (strcmp(cmd, "get") == 0 && argc == 4) {
-        printf("\n========== ЛАБ 4: ИЗВЛЕЧЕНИЕ I-ГО ЭЛЕМЕНТА ==========\n");
-        
-        // Переводим строковый аргумент в число (индекс) с помощью atoi
-        int index = atoi(argv[2]);      
-        const char* file = argv[3];     
-
-        printf("Поиск матрицы под индексом %d в файле '%s'...\n", index, file);
-        
-        // Читаем файл до нужного места, пропуская ненужные строки (без загрузки всего файла в память)
-        matrix2d* m = get_element_from_text_file(file, index);
-        
-        if (m != NULL) {
-            printf("\nУспех! Прочитана матрица (индекс %d):\n", index);
-            print_matrix(m);   // Выводим матрицу
-            free_matrix(m);    // Сразу очищаем память
-        } else {
-            printf("Ошибка: не удалось найти элемент %d (возможно, он за границами файла).\n", index);
+        printf("\nРезультат ввода:\n");
+        for (int i = 0; i < m->rows; i++) {
+            for (int j = 0; j < m->cols; j++) printf("%d\t", m->data[i][j]);
+            printf("\n");
         }
-    } 
+        free_simple(m);
+    }
     
-    // Защита от неправильного ввода в консоль
-    else {
-        printf("Ошибка ввода! Неизвестная команда или неверное количество аргументов.\n");
-        printf("Запустите ./main без аргументов для вызова справки.\n");
+    // --- ЛАБОРАТОРНАЯ 2: БИТОВЫЕ ПОЛЯ (RGB) ---
+    else if (strcmp(command, "lab2") == 0) {
+        printf("\n--- ЛАБ 2: ВВОД ПИКСЕЛЕЙ (БИТОВЫЕ ПОЛЯ) ---\n");
+        matrix2d* screen = create_matrix(2, 2);
+        
+        printf("Введите данные R G B и Mode(0-2) для каждого пикселя:\n");
+        for (int i = 0; i < screen->rows; i++) {
+            for (int j = 0; j < screen->cols; j++) {
+                int r, g, b, mode;
+                printf("Пиксель [%d][%d]: ", i, j);
+                scanf("%d %d %d %d", &r, &g, &b, &mode);
+                // Присваиваем значения битовым полям
+                screen->data[i][j].red = r;
+                screen->data[i][j].green = g;
+                screen->data[i][j].blue = b;
+                screen->data[i][j].mode = mode;
+            }
+        }
+        
+        printf("\nВывод матрицы пикселей:\n");
+        print_matrix(screen);
+        free_matrix(screen);
+    }
+    
+    // --- ЛАБОРАТОРНАЯ 3: ОЧЕРЕДЬ 1 000 000 ЭЛЕМЕНТОВ ---
+    else if (strcmp(command, "lab3") == 0) {
+        printf("\n--- ЛАБ 3: ТЕСТ ОЧЕРЕДИ (1 МИЛЛИОН ОБЪЕКТОВ) ---\n");
+        queue* q = create_queue();
+        int count = 1000000;
+        
+        printf("Добавление %d элементов в очередь (FIFO)...\n", count);
+        for (int i = 0; i < count; i++) {
+            matrix2d* m = create_matrix(1, 1);
+            m->data[0][0].red = i % 256;
+            enqueue(q, m);
+        }
+        
+        printf("Успешно! Элементов в контейнере: %d\n", q->count);
+        
+        matrix2d* first = dequeue(q);
+        printf("Первый элемент извлечен. Цвет RED: %d\n", first->data[0][0].red);
+        
+        free_matrix(first);
+        free_queue(q); // Очистка памяти
+        printf("Память очищена.\n");
+    }
+    
+    // --- ЛАБОРАТОРНАЯ 4: ФАЙЛЫ ---
+    else if (strcmp(command, "lab4") == 0) {
+        if (argc < 3) return 0;
+        const char* subcmd = argv[2];
+        
+        if (strcmp(subcmd, "save") == 0 && argc == 4) {
+            int n = 10000;
+            matrix2d** arr = rand_gen_struct(n);
+            save_text(argv[3], arr, n);
+            printf("Сохранено %d элементов в %s\n", n, argv[3]);
+            for(int i = 0; i < n; i++) free_matrix(arr[i]);
+            free(arr);
+        }
+        else if (strcmp(subcmd, "list") == 0 && argc == 4) {
+            list_file(argv[3]);
+        }
+        else if (strcmp(subcmd, "get") == 0 && argc == 5) {
+            int idx = atoi(argv[3]);
+            matrix2d* m = get_element_from_text_file(argv[4], idx);
+            if (m) {
+                print_matrix(m);
+                free_matrix(m);
+            }
+        }
     }
 
-    // Требование Лабы №4: "За раз можно продемонстрировать только одну операцию. 
-    // После выполнения программа полностью закрывается".
     return 0;
 }
