@@ -15,6 +15,7 @@ typedef struct {
 matrix2d* create_matrix(int r, int c);
 void free_matrix(matrix2d* m);
 void fill_random(matrix2d* m);
+void input_matrix(matrix2d* m);
 void print_matrix(matrix2d* m);
 
 #endif
