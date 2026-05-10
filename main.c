@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     if (argc < 2) {
         printf("=== МЕНЮ ТЕСТИРОВАНИЯ ЛАБОРАТОРНЫХ РАБОТ ===\n");
         printf(" ./main lab1   - Тест Лабы 1 (Чистая Матрица на int + scanf)\n");
-        printf(" ./main lab2   - Тест Лабы 2 (Матрица с RGB пикселями + scanf)\n");
+        printf(" ./main lab2   - Тест Лабы 2 (Битовые поля и интеграция)\n");
         printf(" ./main lab3   - Тест Лабы 3 (Очередь на 1 000 000 элементов)\n");
         printf(" ./main lab4 save <файл> - Тест Лабы 4 (Сохранение в файл)\n");
         printf(" ./main lab4 list <файл> - Тест Лабы 4 (Количество в файле)\n");
@@ -70,30 +70,33 @@ int main(int argc, char *argv[]) {
             printf("\n");
         }
         free_simple(m);
+        printf("Память очищена.\n");
     }
     
     // --- ЛАБОРАТОРНАЯ 2: БИТОВЫЕ ПОЛЯ (RGB) ---
     else if (strcmp(command, "lab2") == 0) {
         printf("\n--- ЛАБ 2: ВВОД ПИКСЕЛЕЙ (БИТОВЫЕ ПОЛЯ) ---\n");
-        matrix2d* screen = create_matrix(2, 2);
         
-        printf("Введите данные R G B и Mode(0-2) для каждого пикселя:\n");
-        for (int i = 0; i < screen->rows; i++) {
-            for (int j = 0; j < screen->cols; j++) {
-                int r, g, b, mode;
-                printf("Пиксель [%d][%d]: ", i, j);
-                scanf("%d %d %d %d", &r, &g, &b, &mode);
-                // Присваиваем значения битовым полям
-                screen->data[i][j].red = r;
-                screen->data[i][j].green = g;
-                screen->data[i][j].blue = b;
-                screen->data[i][j].mode = mode;
-            }
-        }
+        // 1. Демонстрация метода из bitrgbled.c
+        printf("ЧАСТЬ 1: Тест одиночного пикселя\n");
+        rgbled* my_pixel = create_pixel(0, 0, 0, 0);
+        fill_pixel_manual(my_pixel);
+        
+        printf("\nУспех! Данные сохранены в битовые поля:\n");
+        printf("Красный: %d, Зеленый: %d, Синий: %d\n", 
+               my_pixel->red, my_pixel->green, my_pixel->blue);
+        printf("Режим работы (занимает 2 бита): %d\n", my_pixel->mode);
+        free_pixel(my_pixel);
+        
+        // 2. Демонстрация интеграции в матрицу (метод из matrix2d.c)
+        printf("\nЧАСТЬ 2: Тест интеграции пикселей в матрицу\n");
+        matrix2d* screen = create_matrix(2, 2);
+        input_matrix(screen); 
         
         printf("\nВывод матрицы пикселей:\n");
         print_matrix(screen);
         free_matrix(screen);
+        printf("Память экрана очищена.\n");
     }
     
     // --- ЛАБОРАТОРНАЯ 3: ОЧЕРЕДЬ 1 000 000 ЭЛЕМЕНТОВ ---
@@ -116,7 +119,7 @@ int main(int argc, char *argv[]) {
         
         free_matrix(first);
         free_queue(q); // Очистка памяти
-        printf("Память очищена.\n");
+        printf("Память очищена без утечек.\n");
     }
     
     // --- ЛАБОРАТОРНАЯ 4: ФАЙЛЫ ---
